@@ -46,10 +46,6 @@ void setup() {
    delay(500);
    myservo.write(90);
    delay(500);
-   myservo.write(180);
-   delay(500);
-   myservo.write(90);
-   delay(500);
    myservo.write(0);
    delay(500);
 
