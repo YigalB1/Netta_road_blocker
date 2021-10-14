@@ -8,7 +8,7 @@
 
 #define GATE_OPEN 0
 #define GATE_CLOSED 1
-#define CLOSE_DIST 10
+#define CLOSE_DIST 7
 
 #define SERVO_OPEN   0
 #define SERVO_CLOSE 90
@@ -52,11 +52,20 @@ void setup() {
   Serial.println("setup finished");
 }
 
+bool c1 = false; // close dist last
+bool c2 = false; // close dist prev
+bool c3 = false; // close dist prev prev
+bool c4 = false; // close dist prev prev prev
+bool f1 = false; // far dist last
+bool f2 = false; // far dist prev
+bool f3 = false; // far dist prev prev
+bool f4 = false; // far dist prev prev prev
+bool wait_period = false; // 3 readings of far to allow new change of gate state
+
 void loop() {
   distance = read_US_sensor();
 
-  //Serial.print(distance);
-  //Serial.print(" ");
+  
   //Serial.print(p_dist);
   //Serial.print(" ");
   //Serial.print(p_p_dist);
@@ -65,12 +74,49 @@ void loop() {
   //Serial.print("        // State: ");
   //Serial.println(gate_is_opened);
 
+  c1 = distance < CLOSE_DIST;
+  f1 = !c1;
 
-  if (distance<CLOSE_DIST && p_dist<CLOSE_DIST && p_p_dist<CLOSE_DIST && p_p_p_dist>CLOSE_DIST ) {
-    // if 3 "close" readings followed one "far" read - we treat this is a state change
+  /*
+  Serial.print(c1);
+  Serial.print(" ");
+  Serial.print(c2);
+  Serial.print(" ");
+  Serial.print(c3);
+  Serial.print(" ");
+  Serial.print(c4);
+  Serial.print("  //  ");
+  Serial.print(f1);
+  Serial.print(" ");
+  Serial.print(f2);
+  Serial.print(" ");
+  Serial.print(f3);
+  Serial.print(" ");
+  Serial.print("  //  ");
+  Serial.print(wait_period);
+  Serial.print(" ");
+  //Serial.print(change); // change is up and down before this point
+  Serial.print("  //  ");
+  Serial.print(distance);
+  Serial.println();
+  */
+  
+  if (f2 && f3 && f4) {
+    // last 3 readings were far, so gate can change again
+    wait_period = true;
+  } // of if()
+  if (c1 && c2 && c3 && c4 && wait_period ) {
     gate_is_opened = !gate_is_opened;
     change = true;
-  } // of outer IF
+    wait_period = false;
+  } // of if
+
+  //if (distance<CLOSE_DIST && p_dist<CLOSE_DIST && p_p_dist<CLOSE_DIST && p_p_p_dist>CLOSE_DIST ) {
+  //  // if 3 "close" readings followed one "far" read - we treat this is a state change
+  //  gate_is_opened = !gate_is_opened;
+  //  change = true;
+  //} // of  IF
+
 
   if (change) {
     if ( gate_is_opened ) {      
@@ -87,11 +133,16 @@ void loop() {
     } // of ELSE        
     change = false;
   }
-  
 
-  p_p_p_dist = p_p_dist;
-  p_p_dist = p_dist;
-  p_dist = distance;
+  c4=c3;
+  c3=c2;
+  c2=c1;
+  f4=f3;
+  f3=f2;
+  f2=f1;
+  //p_p_p_dist = p_p_dist;
+  //p_p_dist = p_dist;
+  //p_dist = distance;
 
 
 
@@ -104,7 +155,7 @@ void loop() {
     myservo.write(180);
   */
 
-  delay(200); 
+  delay(100); 
 
   
   
