@@ -6,6 +6,10 @@
 		{
 			"name": "Netta_oad_Blocker",
 			"path": "Netta_oad_Blocker"
+		},
+		{
+			"name": "Netta_Road_Blocker_V2",
+			"path": "Netta_Road_Blocker_V2"
 		}
 	],
 	"settings": {}
