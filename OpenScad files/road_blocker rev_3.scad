@@ -19,10 +19,12 @@ corner_x = 6;
 // for real printing, use "false"
 // for debug, use "true", to see how the inner parts fit
 
-to_print = 1; // 1: the box, 2: the cover
+to_print = 2; // 1: the box, 2: the cover
 //wemos_and_pins();
 
 //test();
+
+
 
 module test() {
     // only for testting
@@ -69,7 +71,8 @@ module cover_to_print() {
     led_cover_d=11.8;// was 12.5;
     cover_h = 2;
     
-    header = "המחסום של נטע";
+    header1 = "המחסום של נטע";
+    header = "המחסום של עידו";
     font = "Liberation Sans";
     
     
@@ -125,7 +128,20 @@ module box_to_print(inner="false",ext_pins="false") {
     difference() {        
         union() {
             box(ext_pins);
-            rotate(Wemos_rotate_vec) translate(Wemos_shift_vec)         wemos_and_pins(dummy_usb=false);                  
+            // add wemos pcb holder
+            rotate(Wemos_rotate_vec) translate(Wemos_shift_vec)         wemos_and_pins(dummy_usb=false);             
+            // add the wemos small holder (no pcb)
+            
+            wemos_d1_shift_vec=[-5,-17,-13];
+            wemos_d1_rot_vec=[0,0,-90];
+            wemos_RF_up=0; // 0: RF down. 1: RF up
+            rotate(wemos_d1_rot_vec) translate(wemos_d1_shift_vec)
+                color("blue") wemos_d1_mini_demo(rf_up=wemos_RF_up);
+       
+       
+       
+       
+            
         } // of union
         rotate(Wemos_rotate_vec) translate(Wemos_shift_vec)         wemos_and_pins(dummy_usb=true); 
         
@@ -133,8 +149,6 @@ module box_to_print(inner="false",ext_pins="false") {
         //translate(us_sensor_vec) US_sensor(); // module was not accurate
         translate(us_sensor_vec) ultra_sonic();
         rotate([-90,0,-90]) translate([0,-14,52]) smile();
-        
-        
     } // of difference
 } // of box_to_print()
 

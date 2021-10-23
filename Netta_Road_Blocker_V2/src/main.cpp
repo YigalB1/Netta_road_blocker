@@ -38,6 +38,8 @@ int p_p_p_dist = 103;
 void setup() {
   Serial.begin(9600);
   Serial.println("Starting SETUP");
+
+  myservo.attach(12);
   
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(red_led, OUTPUT);
@@ -58,9 +60,8 @@ void setup() {
   Serial.println(ESP.getChipId());
   pinMode(trigPin, OUTPUT); 
   pinMode(echoPin, INPUT); 
-  
-  
-   myservo.attach(12);
+    
+   
 
    myservo.write(SERVO_OPEN);
    delay(300);
@@ -131,7 +132,7 @@ void loop() {
   f4=f3;
   f3=f2;
   f2=f1;
-  delay(50);  // to slow down so no false too fast readings
+  delay(100);  // to slow down so no false too fast readings
 } // of LOOP()
 
 // ----------------------------------------------------------------
