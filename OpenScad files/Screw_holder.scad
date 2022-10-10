@@ -11,7 +11,7 @@ module pin_negative(size=2) {
     if (size==2) {
     
     hole_d = 3.2;
-    hole_h = 3.8+0.4;
+    hole_h = 3.8+0.4+5;
     color("blue") cylinder(d=hole_d,h=hole_h);;
    } // 2mm  
    else if(size==3) {

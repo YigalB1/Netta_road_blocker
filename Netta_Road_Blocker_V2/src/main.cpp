@@ -2,23 +2,34 @@
 #include <Servo.h>
 
 //#define echoPin 2 // attach pin D2 Arduino to pin Echo of HC-SR04
-const int echoPin = 5; // GPIO 5 (D1) in schematics
+// rev 2: const int echoPin = 5; // GPIO 5 (D1) in schematics
+const int echoPin = 16; // rev 3: GPIO 16 (D0) in schematics
 
 //#define trigPin 3 //attach pin D3 Arduino to pin Trig of HC-SR04
-const int trigPin = 0; // GPIO 0 (D3) in schematics
+// rev 2: const int trigPin = 0; // GPIO 0 (D3) in schematics
+const int trigPin = 14; // rev3: GPIO 14 (D5) in schematics
 
 //#define red_led 12
-const int red_led = 16; // GPIO 16 is D0 in schematics
+// rev 2: const int red_led = 16; // GPIO 16 is D0 in schematics
+const int red_led = 5; // rev 3: led1 GPIO 5 is D1 in schematics
 //#define green_led 11
-const int green_led = 14; // GPIO 14 is D5 in schematics
+// rev 2: const int green_led = 14; // GPIO 14 is D5 in schematics
+const int green_led = 4; // rev 3: GPIO 4 is D2 in schematics
+
+const int servo_pin = 12; // GPIO 12 is D6 in schematics
 
 #define GATE_OPEN 0
 #define GATE_CLOSED 1
+
+
 #define CLOSE_DIST 10
 #define MAX_DIST 100
 
 #define SERVO_OPEN   0
 #define SERVO_CLOSE 180 
+#define SERVO_OPEN_US   1000  // in micro sec
+#define SERVO_CLOSE_US  2000  // in micro sec
+
 
 
 long duration; 
@@ -34,16 +45,36 @@ int p_dist = 101; // p: short for prev
 int p_p_dist = 102;
 int p_p_p_dist = 103;
 
+void test_leds();
+void test_servo();
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Starting SETUP");
 
-  myservo.attach(12);
-  
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(red_led, OUTPUT);
   pinMode(green_led, OUTPUT);
+  pinMode(trigPin, OUTPUT); 
+  pinMode(echoPin, INPUT); 
+
+  myservo.attach(servo_pin);
+
+/*
+  int tmp_rd;
+  // test leds temp
+  while(true) {
+    // test_leds();
+    tmp_rd = read_US_sensor();
+    Serial.println(tmp_rd);
+    //delay(200);
+    test_servo();
+    test_servo();    
+  }
+*/
+  
+  
+  
 
   // show signs of life
   for(int i=0;i<3;i++) {
@@ -58,8 +89,7 @@ void setup() {
   }  // of for()
   
   Serial.println(ESP.getChipId());
-  pinMode(trigPin, OUTPUT); 
-  pinMode(echoPin, INPUT); 
+  
     
    
 
@@ -156,3 +186,21 @@ int read_US_sensor() {
   if (dist==0) dist = 100; // value 0 should be ignored
   return dist;
 } // of read_US_sensor()
+
+void test_leds() {
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(red_led, LOW);
+  digitalWrite(green_led, LOW);
+  delay(500);
+  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(red_led, HIGH);
+  digitalWrite(green_led, HIGH);
+  delay(500);
+} // of test_leds
+
+void test_servo() {
+  myservo.writeMicroseconds(SERVO_OPEN_US);
+  delay(300);
+  myservo.writeMicroseconds(SERVO_CLOSE_US);
+  delay(300);
+} // of test_servo()
