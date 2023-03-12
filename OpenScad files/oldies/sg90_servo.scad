@@ -1,4 +1,5 @@
-//sg90_motor();
+$fn=60;
+sg90_motor();
 
 module sg90_motor(){
 	difference(){			
