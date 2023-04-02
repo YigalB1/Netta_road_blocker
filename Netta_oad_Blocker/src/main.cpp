@@ -1,26 +1,14 @@
-#include <Arduino.h>
-#include <Servo.h>
+
 #define servo_pin 9
 
-long duration; 
-int distance; 
 
-//#include <headers.h>
 
+#include <headers.h>
 
 
 
-//int read_US_sensor();
-//Servo myservo;  
-//int pos = 0; 
-//int state = GATE_CLOSED;
-//bool gate_is_opened = false;
-//bool change = true;
-
-//void write_servo(int _angle1,int _angle2);
-
-//road_blocker my_blocker;
-Servo gate_servo;
+road_blocker my_blocker;
+//Servo gate_servo;
 
 
 void setup() {
@@ -28,27 +16,54 @@ void setup() {
   Serial.begin(9600);
   Serial.print("");
   Serial.print("starting SETUP ....");
-  //my_blocker.Green_led.led_pin = green_led_pin;
-  //my_blocker.Green_led.init_led();
-  //my_blocker.Red_led.led_pin = red_led_pin;
-  //my_blocker.Red_led.init_led();
-  //my_blocker.myservo.attach(servo_pin);
-  gate_servo.attach(servo_pin);
+  my_blocker.Green_led.led_pin = green_led_pin;
+  my_blocker.Green_led.init_led();
+  my_blocker.Red_led.led_pin = red_led_pin;
+  my_blocker.Red_led.init_led();
+  my_blocker.gate_servo.attach(servo_pin);
   
-
-  Serial.println("Ending SETUP");
+  
   //my_blocker.test_leds();
   //my_blocker.test_sensor();
+
+  
    //myservo.attach(servo_pin);
-  //Serial.println("setup finished");
+  Serial.println("setup finished");
+  wait_millis(2000);
 } // of SETUP
 
 void loop() {
+  //Serial.println("start loop");
+  my_blocker.check_sensor();
+  if(my_blocker.change_it) {
+    // Time to change the gate
+    if (my_blocker.opened_gate) {
+      // gate was opened - close it
+      my_blocker.cng_gate(GATE_CLOSED);
+      my_blocker.opened_gate = false;
+    }// of if()
+    else {
+      // gate was closed - open it
+      my_blocker.cng_gate(GATE_OPEN);
+      my_blocker.opened_gate = true;
+    } // end else()
+  my_blocker.change_it = false;
+  } // of if()
+
+  //Serial.println("end loop");
+  wait_millis(3000);
+
+  //my_blocker.cng_gate(GATE_OPEN);
+  //wait_millis(2000);
+  //my_blocker.cng_gate(GATE_CLOSED);
+  //wait_millis(2000);
   //return;
 
   //while (true) {  
   //my_blocker.myservo.write(0);
   //Serial.println("");
+  
+  /*
   Serial.println(".0.");
   delay(100);
   gate_servo.write(0);
@@ -65,7 +80,7 @@ void loop() {
   gate_servo.write(90);
   delay(500);
   //my_blocker.test_servo();
-
+*/
   //return;
 //}
   /*
