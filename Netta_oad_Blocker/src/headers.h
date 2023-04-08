@@ -8,10 +8,12 @@
 
 #define GATE_OPEN 0
 #define GATE_CLOSED 1
+#define GATE_SIDE2  2
 #define CLOSE_DIST 20 // was 7
 
 #define SERVO_OPEN   0
 #define SERVO_CLOSE 90
+#define SERVO_SIDE2 180
 
 long duration; 
 int distance; 
@@ -84,7 +86,7 @@ class road_blocker {
     Led Red_led;
     US_sensor dist_sensor;
     Servo gate_servo;
-    int gate_cng_t = 3000; // time (ms) for change gate position
+    int gate_cng_t = 3150; // time (ms) for change gate position
     int gate_steps_n = 90;
     bool opened_gate = false; // current status of the gate
     bool change_it = false;  // chnage the gate from open to close or from close to open
@@ -119,6 +121,9 @@ class road_blocker {
 
     void cng_gate(int _dir) {
     
+        // make sure both LEDs are off
+        Green_led.set_led_off();
+        Red_led.set_led_off();
       //Serial.println("Opening....");
       //write_servo(SERVO_CLOSE,SERVO_OPEN);
       Led cur_led;
@@ -127,18 +132,31 @@ class road_blocker {
       else
         cur_led = Green_led;
 
+      Serial.print("_dir:");
+      Serial.println(_dir);
+      Serial.print("cur_led pin: ");  
+      Serial.println(cur_led.led_pin);  
+
       int t=0; // ms
       int angle = SERVO_OPEN;
       int t_step = gate_cng_t/gate_steps_n;
-      int a_step = (SERVO_CLOSE-SERVO_OPEN)/gate_steps_n;
+      int a_step = gate_steps_n/(SERVO_CLOSE-SERVO_OPEN);
+      int servo_step = 1;
+
       if (_dir==GATE_CLOSED) {
         Serial.println("Closing....");
         a_step=0-a_step;
         angle = SERVO_CLOSE;
+        servo_step = -1;
       } // of if()
+      else if (_dir==GATE_OPEN) {
+        Serial.println(" Opening 1....");
+        angle = SERVO_OPEN;
+      }// of else if()
       else {
-        Serial.println(" Opening....");
-      }// of else()
+        Serial.println(" Opening 2....");
+        angle = SERVO_SIDE2;
+      } // of else()
 
       //Serial.print("gate_cng_t:");
       //Serial.println(gate_cng_t);
@@ -149,23 +167,117 @@ class road_blocker {
       //Serial.print("a_step:");
       //Serial.println(a_step);
       
-      int blink_num=5;
+      int t_wait = 50;
+      int blink_num=4;
       int blink_jmp=90/blink_num;
+      Serial.print(" xxx ");
+      Serial.println(angle);
+      
+      //t=0; // ms
+      int cnt=0;
+      //int stp = gate_cng_t/blink_num;
+      //bool cng = true;
+      int i=0;
+
+      Serial.print("xx: t_step ");
+      Serial.print(t_step);
+      Serial.print(" gate_cng_t: ");
+      Serial.println(gate_cng_t);
+      Serial.print(" angle: ");
+      Serial.println(angle);
+
+      
+      
+      while (cnt<gate_cng_t) {
+        gate_servo.write(angle);
+
+        i=cnt/blink_jmp;
+        if (i%2==0)
+        {
+          cur_led.set_led_on();
+        } // of if()
+        else {
+          cur_led.set_led_off();
+        } // of else()
+        
+        //cnt+=blink_jmp;
+        wait_millis(50);
+
+        Serial.print("... angle: ");
+        Serial.print(angle);
+        Serial.print(" . cnt: ");
+        Serial.print(cnt);
+
+        angle+=servo_step;
+        cnt+=t_step; // count towards gate_cng_t in miliseconds
+      } // of while(
+
+
+      Serial.print(" final angle: ");
+      Serial.println(angle);
+        
+       // make sure both LEDs are off
+        Green_led.set_led_off();
+        Red_led.set_led_off();
+        // light the current LED
+        cur_led.set_led_on();
+
+      
+      return;
+
+
+
+
+
+      
       while (t<gate_cng_t) {
-        if (angle>0 && angle<blink_jmp) {
-            cur_led.set_led_on();
+        if (gate_cng_t%2==1) {
+          // top create on/off
+          cur_led.set_led_on();
         }
-        else if (angle>blink_jmp && angle<blink_jmp*2) {
+        else 
+        {
+          cur_led.set_led_off();
+        }
+        t+=t_step;
+        return;
+
+        Serial.print("// t: ");
+        Serial.print(t);
+        Serial.print(" angle: ");
+        Serial.print(angle);
+        Serial.print(" blink_jmp:  ");
+        Serial.println(blink_jmp);
+
+        if (angle>=0 && angle<blink_jmp) {
+            cur_led.set_led_on();
+            wait_millis(t_wait);
+            Serial.print(" a ");
+            Serial.print(angle);
+        }
+        else if (angle>=blink_jmp && angle<blink_jmp*2) {
             cur_led.set_led_off();
+            wait_millis(t_wait);
+            Serial.print(" b ");
+            Serial.print(angle);
         }
-        else if (angle>blink_jmp*2 && angle<blink_jmp*3) {
+        else if (angle>=blink_jmp*2 && angle<blink_jmp*3) {
             cur_led.set_led_on();
+            wait_millis(t_wait);
+            Serial.print(" c ");
+            Serial.print(angle);
         }
-        else if (angle>blink_jmp*3 && angle<blink_jmp*4) {
+        else if (angle>=blink_jmp*3 && angle<blink_jmp*4) {
             cur_led.set_led_off();
+            wait_millis(t_wait);
+            Serial.print(" d ");
+            Serial.print(angle);
         }
-        else if (angle>blink_jmp*4 ) {
+        else if (angle>=blink_jmp*4 ) {
             cur_led.set_led_on();
+            wait_millis(t_wait);
+            Serial.print(" e ");
+            Serial.print(angle);
         }
 
         
@@ -180,8 +292,22 @@ class road_blocker {
         angle+=a_step;
       } // of while
 
-      
+        // make sure both LEDs are off
+        Green_led.set_led_off();
+        Red_led.set_led_off();
+        // light the current LED
+        cur_led.set_led_on();
 
+/*
+        if (_dir==GATE_CLOSED) { 
+          Green_led.set_led_off();
+          Red_led.set_led_on();
+        } 
+        else {
+          Red_led.set_led_off();
+          Green_led.set_led_on();
+        }
+*/
 
 
       //digitalWrite(red_led_pin,LOW);

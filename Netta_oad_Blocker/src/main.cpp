@@ -1,18 +1,11 @@
 
 #define servo_pin 9
-
-
-
 #include <headers.h>
 
-
-
 road_blocker my_blocker;
-//Servo gate_servo;
 
 
-void setup() {
-  
+void setup() {  
   Serial.begin(9600);
   Serial.print("");
   Serial.print("starting SETUP ....");
@@ -26,15 +19,32 @@ void setup() {
   //my_blocker.test_leds();
   //my_blocker.test_sensor();
 
+  my_blocker.cng_gate(GATE_OPEN);
+  wait_millis(400);
+  my_blocker.cng_gate(GATE_CLOSED);
+  wait_millis(400);
+  my_blocker.cng_gate(GATE_SIDE2);
+  wait_millis(400);
+
   
-   //myservo.attach(servo_pin);
+  
   Serial.println("setup finished");
-  wait_millis(2000);
+  
 } // of SETUP
 
 void loop() {
-  //Serial.println("start loop");
+  
   my_blocker.check_sensor();
+  Serial.println(" ");
+  Serial.print("----------------------------");
+  Serial.print(my_blocker.dist_sensor.dist);
+  Serial.print(" . ");
+  Serial.print(my_blocker.change_it);
+  Serial.print(" . ");
+  Serial.print(my_blocker.opened_gate);
+  Serial.print(" / ");
+  
+  delay(300);
   if(my_blocker.change_it) {
     // Time to change the gate
     if (my_blocker.opened_gate) {
