@@ -1,22 +1,42 @@
 #include <Arduino.h>
 #include <Servo.h>
 
-#define echoPin 2 // attach pin D2 Arduino to pin Echo of HC-SR04
-#define trigPin 3 //attach pin D3 Arduino to pin Trig of HC-SR04
+#define echoPin 2 //  pin D2 to pin Echo of HC-SR04
+#define trigPin 3 //  pin D3 to pin Trig of HC-SR04
 #define red_led_pin 12
 #define green_led_pin 11
 
 #define GATE_OPEN 0
 #define GATE_CLOSED 1
 #define GATE_SIDE2  2
+
+#define GATE_CLOSE1 0
+#define GATE_CLOSE2 0
+
 #define CLOSE_DIST 20 // was 7
 
 #define SERVO_OPEN   0
 #define SERVO_CLOSE 90
 #define SERVO_SIDE2 180
 
+// new 
+#define GATE_OPEN_NEW 90
+#define SERVO_CLOSE1 0
+#define SERVO_CLOSE2 180
+#define SERVO_DELAY 50
+
+
+#define DIR_DOWN  -1
+#define DIR_UP  1
+
+
 long duration; 
 int distance; 
+
+// Position    | angle | t_stp | angle change
+// Servo Open  |  0    |  +    | 0   -> 90
+// Servo Close | 90    |  -    | 90  ->  0
+// Servo Side2 | 180   |  -    | 180 -> 90
 
 
 void wait_millis(int _period_ms) {
@@ -62,7 +82,7 @@ class Led {
     public:
     int led_pin;
     
-    void init_led() {
+    void init_led() { 
       pinMode(led_pin, OUTPUT);
       //Serial.print("init_led: ");
       //Serial.println(led_pin);
@@ -90,21 +110,12 @@ class road_blocker {
     int gate_steps_n = 90;
     bool opened_gate = false; // current status of the gate
     bool change_it = false;  // chnage the gate from open to close or from close to open
+    bool opened;  // the status if the gate true: opened. false: closed
+
+  
+  int servo_close = 777;
 
 
-    void init11() {
-      Serial.println(" In Init ");
-      Green_led.led_pin = green_led_pin;
-      Green_led.init_led();
-      Red_led.led_pin = red_led_pin;
-      Red_led.init_led();
-      dist_sensor.echo_pin = echoPin;
-      dist_sensor.trig_pin = trigPin;
-      dist_sensor.init_US_sensor();
-      gate_servo.attach(servo_pin);
-      opened_gate = false;
-      close_gate();
-    }
 
     void check_sensor() {
       dist_sensor.read_US_sensor();        
@@ -117,7 +128,86 @@ class road_blocker {
       } // of if()
     } // of open_gate()
 
-    void open_gate() {};
+    //void open_gate() {};
+
+
+// -------------------------------------------------
+    void cng_gate_new(int _from,int _to) {
+      // make sure both LEDs are off
+      Green_led.set_led_off();
+      Red_led.set_led_off();
+      //bool opening; // opening the ggate or close it
+      Serial.println(" in cng_gate_new:");
+
+      Led cur_led;
+      if (_from==GATE_OPEN_NEW) {
+        // closing
+        //opening=false;
+        cur_led = Red_led;
+        opened = false;
+      } // of if()
+      else {
+        // opening
+        //opening=true;
+        cur_led = Green_led;
+        opened = true;
+      } // of else()
+
+
+      Serial.print(" _from:");
+      Serial.print(_from);
+      Serial.print(" to: ");  
+      Serial.print(_to);
+      Serial.print(" opened: ");  
+      Serial.println(opened);
+
+      int blnk_cycle = 10;
+      int blnk_on = 3;
+      
+      if (_to>_from) {
+        Serial.print(" UP "); 
+        for(int i=_from;i<= _to;i++) {
+          //Serial.print(" ");
+          //Serial.print(i);
+          if (i%blnk_cycle<blnk_on) {
+            // light the LED from 0-2
+            cur_led.set_led_on();
+          } // of if()
+          else {
+            // shut the LED
+            cur_led.set_led_off();
+          } // of else()
+          gate_servo.write(i);
+          delay(SERVO_DELAY);
+        } // of for()
+      } // of if()
+      else{
+        Serial.print(" DOWN ");
+          for(int i=_from;i>= _to;i--) {
+            //Serial.print(" ");
+            //Serial.print(i);
+            if (i%blnk_cycle>blnk_cycle-blnk_on) {
+            // light the LED, from 7-9
+            cur_led.set_led_on();
+          } // of if()
+          else {
+            // shut the LED
+            cur_led.set_led_off();
+          } // of else()
+            gate_servo.write(i);
+            delay(SERVO_DELAY);
+        } // of for()
+      } // of else()
+
+    if (opened)
+      Green_led.set_led_on();
+    else
+      Red_led.set_led_on();
+      
+    } // of cng_gate_new() - should replace the current
+
+// -------------------------------------------------
+
 
     void cng_gate(int _dir) {
     
@@ -137,15 +227,15 @@ class road_blocker {
       Serial.print("cur_led pin: ");  
       Serial.println(cur_led.led_pin);  
 
-      int t=0; // ms
+      //int t=0; // ms
       int angle = SERVO_OPEN;
       int t_step = gate_cng_t/gate_steps_n;
-      int a_step = gate_steps_n/(SERVO_CLOSE-SERVO_OPEN);
+      //int a_step = gate_steps_n/(SERVO_CLOSE-SERVO_OPEN);
       int servo_step = 1;
 
       if (_dir==GATE_CLOSED) {
         Serial.println("Closing....");
-        a_step=0-a_step;
+        //a_step=0-a_step;
         angle = SERVO_CLOSE;
         servo_step = -1;
       } // of if()
@@ -156,6 +246,8 @@ class road_blocker {
       else {
         Serial.println(" Opening 2....");
         angle = SERVO_SIDE2;
+        //a_step=0-a_step;
+        servo_step = -1;
       } // of else()
 
       //Serial.print("gate_cng_t:");
@@ -164,14 +256,14 @@ class road_blocker {
       //Serial.println(gate_steps_n);
       //Serial.print("t_step:");
       //Serial.println(t_step);
-      //Serial.print("a_step:");
-      //Serial.println(a_step);
+
       
-      int t_wait = 50;
       int blink_num=4;
       int blink_jmp=90/blink_num;
       Serial.print(" xxx ");
-      Serial.println(angle);
+      Serial.print(angle);
+      Serial.println("  ");
+      //Serial.println(a_step);
       
       //t=0; // ms
       int cnt=0;
@@ -203,10 +295,10 @@ class road_blocker {
         //cnt+=blink_jmp;
         wait_millis(50);
 
-        Serial.print("... angle: ");
-        Serial.print(angle);
-        Serial.print(" . cnt: ");
-        Serial.print(cnt);
+        //Serial.print("... angle: ");
+        //Serial.print(angle);
+        //Serial.print(" . cnt: ");
+        //Serial.print(cnt);
 
         angle+=servo_step;
         cnt+=t_step; // count towards gate_cng_t in miliseconds
@@ -222,147 +314,10 @@ class road_blocker {
         // light the current LED
         cur_led.set_led_on();
 
-      
-      return;
+    } // of cng_gate()
 
 
-
-
-
-      
-      while (t<gate_cng_t) {
-        if (gate_cng_t%2==1) {
-          // top create on/off
-          cur_led.set_led_on();
-        }
-        else 
-        {
-          cur_led.set_led_off();
-        }
-        t+=t_step;
-        return;
-
-        Serial.print("// t: ");
-        Serial.print(t);
-        Serial.print(" angle: ");
-        Serial.print(angle);
-        Serial.print(" blink_jmp:  ");
-        Serial.println(blink_jmp);
-
-        if (angle>=0 && angle<blink_jmp) {
-            cur_led.set_led_on();
-            wait_millis(t_wait);
-            Serial.print(" a ");
-            Serial.print(angle);
-        }
-        else if (angle>=blink_jmp && angle<blink_jmp*2) {
-            cur_led.set_led_off();
-            wait_millis(t_wait);
-            Serial.print(" b ");
-            Serial.print(angle);
-        }
-        else if (angle>=blink_jmp*2 && angle<blink_jmp*3) {
-            cur_led.set_led_on();
-            wait_millis(t_wait);
-            Serial.print(" c ");
-            Serial.print(angle);
-        }
-        else if (angle>=blink_jmp*3 && angle<blink_jmp*4) {
-            cur_led.set_led_off();
-            wait_millis(t_wait);
-            Serial.print(" d ");
-            Serial.print(angle);
-        }
-        else if (angle>=blink_jmp*4 ) {
-            cur_led.set_led_on();
-            wait_millis(t_wait);
-            Serial.print(" e ");
-            Serial.print(angle);
-        }
-
-        
-        //write_servo(SERVO_CLOSE,SERVO_OPEN,step);
-        //Serial.print("/t: ");
-        //Serial.print(t);
-        //Serial.print(" a: ");
-        //Serial.print(angle);
-        gate_servo.write(angle);
-        wait_millis(t_step);
-        t+=t_step; // count towards gate_cng_t in miliseconds
-        angle+=a_step;
-      } // of while
-
-        // make sure both LEDs are off
-        Green_led.set_led_off();
-        Red_led.set_led_off();
-        // light the current LED
-        cur_led.set_led_on();
-
-/*
-        if (_dir==GATE_CLOSED) { 
-          Green_led.set_led_off();
-          Red_led.set_led_on();
-        } 
-        else {
-          Red_led.set_led_off();
-          Green_led.set_led_on();
-        }
-*/
-
-
-      //digitalWrite(red_led_pin,LOW);
-      //digitalWrite(green_led_pin,HIGH);
-      //gate_is_opened = true;
-      //wait_millis(5000); // wait 5 seconds until next op
-
-      opened_gate = false;
-    } // of open_gate()
-
-
-    void close_gate() {
-        // TBD open slowly, according to OpenCLoseTime
-      Serial.println("Opening....");
-      //write_servo(SERVO_CLOSE,SERVO_OPEN);
-      
-      int t=0; // ms
-      int step = gate_cng_t/gate_steps_n;
-      Serial.print("gate_cng_t:");
-      Serial.println(gate_cng_t);
-      Serial.print("gate_steps_n:");
-      Serial.println(gate_steps_n);
-      Serial.print("step:");
-      Serial.println(step);
-      while (t<gate_cng_t) {
-        t+=step; // count towards gate_cng_t in miliseconds
-        //write_servo(SERVO_CLOSE,SERVO_OPEN,step);
-        Serial.print(" ");
-        Serial.print(t);
-        gate_servo.write(t);
-        wait_millis(step);
-      } // of while
-
-      
-
-
-
-      digitalWrite(red_led_pin,LOW);
-      digitalWrite(green_led_pin,HIGH);
-      //gate_is_opened = true;
-      //wait_millis(5000); // wait 5 seconds until next op
-
-      opened_gate = false;
-    } // of close_gate()
-
-    void close_gate1() {
-      Serial.print("Closing");
-      int step=0;
-      write_servo(SERVO_OPEN,SERVO_CLOSE,step);
-      digitalWrite(red_led_pin,HIGH);
-      digitalWrite(green_led_pin,LOW);
-      //gate_is_opened = false;
-      wait_millis(5000); // wait 5 seconds until next op
-      opened_gate = true;
-    } // of open_gate()
+    
 
     void test_sensor() {   
       
