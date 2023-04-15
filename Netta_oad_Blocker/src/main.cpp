@@ -1,3 +1,5 @@
+#include <Arduino.h>
+#include <Servo.h>
 
 #define servo_pin 9
 #include <headers.h>

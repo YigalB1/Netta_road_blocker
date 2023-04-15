@@ -1,206 +1,89 @@
 //#include <Arduino.h>
 #include <Servo.h>
+#include <headers.h>
 
-//#define echoPin 2 // attach pin D2 Arduino to pin Echo of HC-SR04
-// rev 2: const int echoPin = 5; // GPIO 5 (D1) in schematics
-const int echoPin = 16; // rev 3: GPIO 16 (D0) in schematics
+#define red_led_pin 15
+#define green_led_pin 12
+#define servo_pin 14
 
-//#define trigPin 3 //attach pin D3 Arduino to pin Trig of HC-SR04
-// rev 2: const int trigPin = 0; // GPIO 0 (D3) in schematics
-const int trigPin = 14; // rev3: GPIO 14 (D5) in schematics
-
-//#define red_led 12
-// rev 2: const int red_led = 16; // GPIO 16 is D0 in schematics
-const int red_led = 5; // rev 3: led1 GPIO 5 is D1 in schematics
-//#define green_led 11
-// rev 2: const int green_led = 14; // GPIO 14 is D5 in schematics
-const int green_led = 4; // rev 3: GPIO 4 is D2 in schematics
-
-const int servo_pin = 12; // GPIO 12 is D6 in schematics
-
-#define GATE_OPEN 0
-#define GATE_CLOSED 1
+#define echoPin 4 //  pin D1  of the Wemos
+#define trigPin 5 //  pin D2 of the wemos
 
 
-#define CLOSE_DIST 10
-#define MAX_DIST 100
-
-#define SERVO_OPEN   0
-#define SERVO_CLOSE 180 
-#define SERVO_OPEN_US   1000  // in micro sec
-#define SERVO_CLOSE_US  2000  // in micro sec
-
-
-
-long duration; 
-int distance; 
-int read_US_sensor();
-Servo myservo;  
-int pos = 0; 
-//int state = GATE_CLOSED;
-bool gate_is_opened = false;
-bool change = true;
-
-int p_dist = 101; // p: short for prev
-int p_p_dist = 102;
-int p_p_p_dist = 103;
-
-void test_leds();
-void test_servo();
+road_blocker my_blocker;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Starting SETUP");
+  Serial.print("");
+  Serial.print("starting SETUP ....");
+  my_blocker.Green_led.led_pin = green_led_pin;
+  my_blocker.Green_led.init_led();
+  my_blocker.Red_led.led_pin = red_led_pin;
+  my_blocker.Red_led.init_led();
+  my_blocker.gate_servo.attach(servo_pin);
+  my_blocker.servo_close =  SERVO_CLOSE1;
+  my_blocker.dist_sensor.init_US_sensor(trigPin,echoPin);
 
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(red_led, OUTPUT);
-  pinMode(green_led, OUTPUT);
-  pinMode(trigPin, OUTPUT); 
-  pinMode(echoPin, INPUT); 
+  //my_blocker.test_leds();
+  //my_blocker.test_sensor();
 
-  myservo.attach(servo_pin);
+ 
+ 
 
 /*
-  int tmp_rd;
-  // test leds temp
   while(true) {
-    // test_leds();
-    tmp_rd = read_US_sensor();
-    Serial.println(tmp_rd);
-    //delay(200);
-    test_servo();
-    test_servo();    
-  }
+    Serial.print(".");
+    wait_millis(200);
+  } // of while()
 */
-  
-  
+
+  my_blocker.test_servo_full_move();
   
 
-  // show signs of life
-  for(int i=0;i<3;i++) {
-    digitalWrite(LED_BUILTIN, LOW);  // D1 Mini: turns the LED *off*
-    digitalWrite(green_led, HIGH);  // D1 Mini: turns the LED *off*
-    digitalWrite(red_led, HIGH);  // D1 Mini: turns the LED *off*
-    delay(1000);                      // wait for a second
-    digitalWrite(LED_BUILTIN, HIGH);     // D1 Mini: turns the LED *on*
-    digitalWrite(green_led, LOW);  // D1 Mini: turns the LED *off*
-    digitalWrite(red_led, LOW);  // D1 Mini: turns the LED *off*
-    delay(300); 
-  }  // of for()
-  
-  Serial.println(ESP.getChipId());
-  
-    
-   
 
-   myservo.write(SERVO_OPEN);
-   delay(300);
-   myservo.write(SERVO_CLOSE);
-   delay(300);
-   myservo.write(SERVO_OPEN);
-   delay(300);
-  // start with closed gate
-  gate_is_opened = false;
-  myservo.write(SERVO_CLOSE);
-  digitalWrite(red_led,HIGH);
-  digitalWrite(green_led,LOW);
-  Serial.println("starting with closed gate");
-  Serial.println("setup finished");
+  //Serial.print("Open");
+  //my_blocker.cng_gate_new(my_blocker.servo_close, GATE_OPEN_NEW);
+  //my_blocker.cng_gate_new(GATE_OPEN_NEW,my_blocker.servo_close);
+  //Serial.print("Open");
+  //my_blocker.cng_gate_new(my_blocker.servo_close, GATE_OPEN_NEW);
+  //Serial.print("Open");
+
 }
+void loop(){
 
-bool c1 = false; // close dist last
-bool c2 = false; // close dist prev
-bool c3 = false; // close dist prev prev
-bool c4 = false; // close dist prev prev prev
-bool f1 = false; // far dist last
-bool f2 = false; // far dist prev
-bool f3 = false; // far dist prev prev
-bool f4 = false; // far dist prev prev prev
-bool wait_period = false; // 3 readings of far to allow new change of gate state
-
-// ---------------------------------------------------------------------------
-void loop() {
-  distance = read_US_sensor();
-  Serial.print(distance);
-  Serial.print("  ");
-  if (distance==0)
-    return; // 0 means zero value or larger than MAX_DIST
-
-  c1 = distance < CLOSE_DIST;
-  f1 = !c1;
   
-  if (f2 && f3 && f4) {
-    // last 3 readings were far, so gate can change again
-    wait_period = true;
-  } // of if()
-  if (c1 && c2 && c3 && c4 && wait_period ) {
-    gate_is_opened = !gate_is_opened;
-    change = true;
-    wait_period = false;
-    Serial.println("  ");
-  } // of if
+  my_blocker.check_sensor();
+  //Serial.println("");
+  //Serial.print("// ");
+  //Serial.print(my_blocker.dist_sensor.dist);
+  //Serial.print(" // ");
+  //Serial.print(my_blocker.change_it);
 
-  if (change) {
-    if ( gate_is_opened ) {      
-      myservo.write(SERVO_OPEN);
-      digitalWrite(red_led,LOW);
-      digitalWrite(green_led,HIGH);
-      Serial.println("open gate");
-    } // of IF
+  if(my_blocker.change_it) {
+    // Need to change the gate 
+    //Serial.println(" changing gate. ");
+
+    //Serial.print("my_blocker.opened: ");
+    //Serial.print(my_blocker.opened);
+    //Serial.print("  GATE_OPEN_NEW: ");
+    //Serial.print(GATE_OPEN_NEW);
+    //Serial.print("  my_blocker.servo_close: ");
+    //Serial.print(my_blocker.servo_close);
+    //Serial.print();
+    if (my_blocker.opened) {
+      //Serial.println(" if1 ");
+      // gate was opened - close it
+      my_blocker.cng_gate_new(GATE_OPEN_NEW,my_blocker.servo_close);
+    }// of internal if()
     else {
-      myservo.write(SERVO_CLOSE);
-      digitalWrite(red_led,HIGH);
-      digitalWrite(green_led,LOW);
-      Serial.println("close gate");
-    } // of ELSE        
-    change = false;
-  } // of outer IF
+      //Serial.println(" else1 ");
+      // gate was closed - open it
+      my_blocker.cng_gate_new(my_blocker.servo_close, GATE_OPEN_NEW);
+    } // end else()
+  my_blocker.change_it = false; 
+  } // of external if()
 
-  c4=c3;
-  c3=c2;
-  c2=c1;
-  f4=f3;
-  f3=f2;
-  f2=f1;
-  delay(100);  // to slow down so no false too fast readings
-} // of LOOP()
-
-// ----------------------------------------------------------------
-int read_US_sensor() {
-  int dist = 100;
+  //Serial.println("end loop");
+  wait_millis(1000);
   
-  //ool wait_for_state_change = false;
-  //bool valid_closed = false;
-  //bool valid_open = false;
-
-  // Clears the trigPin condition
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  duration = pulseIn(echoPin, HIGH);
-  dist = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
-  if (dist>MAX_DIST) dist = 100; // value 100 should be ignored
-  if (dist==0) dist = 100; // value 0 should be ignored
-  return dist;
-} // of read_US_sensor()
-
-void test_leds() {
-  digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(red_led, LOW);
-  digitalWrite(green_led, LOW);
-  delay(500);
-  digitalWrite(LED_BUILTIN, HIGH);
-  digitalWrite(red_led, HIGH);
-  digitalWrite(green_led, HIGH);
-  delay(500);
-} // of test_leds
-
-void test_servo() {
-  myservo.writeMicroseconds(SERVO_OPEN_US);
-  delay(300);
-  myservo.writeMicroseconds(SERVO_CLOSE_US);
-  delay(300);
-} // of test_servo()
+}
