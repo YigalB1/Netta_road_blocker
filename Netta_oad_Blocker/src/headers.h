@@ -2,7 +2,9 @@
 #define echoPin 2 //  pin D2 to pin Echo of HC-SR04
 #define trigPin 3 //  pin D3 to pin Trig of HC-SR04
 #define red_led_pin 12
-#define green_led_pin 11
+#define yellow_led_pin 11
+#define green_led_pin 10
+
 
 #define GATE_OPEN 0
 #define GATE_CLOSED 1
@@ -57,11 +59,10 @@ class US_sensor {
     int echo_pin;
     int dist;
     
-    
     void init_US_sensor() {
       pinMode(trig_pin, OUTPUT);
       pinMode(echo_pin, INPUT);
-    }
+    } // of init_US_sensor()
 
     void read_US_sensor() {           
       // Clears the trigPin condition
@@ -86,12 +87,12 @@ class Led {
       //Serial.println(led_pin);
     }
     void set_led_on() {
-        digitalWrite(led_pin,HIGH);
+        digitalWrite(led_pin,LOW);
         //Serial.print("Led ON : ");
         //Serial.println(led_pin);
     }
     void set_led_off() {
-        digitalWrite(led_pin,LOW);
+        digitalWrite(led_pin,HIGH);
         //Serial.print("Led OFF : ");
         //Serial.println(led_pin);
     }
@@ -102,6 +103,7 @@ class road_blocker {
   public:
     Led Green_led;
     Led Red_led;
+    Led Yellow_led;
     US_sensor dist_sensor;
     Servo gate_servo;
     int gate_cng_t = 3150; // time (ms) for change gate position
@@ -114,6 +116,24 @@ class road_blocker {
   int servo_close = 777;
 
 
+void test1_servo() {
+
+  Serial.println("Servo up");
+  for(int i=0;i<180;i+=10) {
+    gate_servo.write(i);
+    wait_millis(100);
+  }
+
+Serial.println("Servo dpwn");
+  wait_millis(500);
+
+  for(int i=180;i>0;i-=10) {
+    gate_servo.write(i);
+    wait_millis(100);
+  }
+  wait_millis(500);
+
+} // of test1_servo
 
     void check_sensor() {
       dist_sensor.read_US_sensor();        
@@ -135,7 +155,10 @@ class road_blocker {
       Green_led.set_led_off();
       Red_led.set_led_off();
       //bool opening; // opening the ggate or close it
-      Serial.println(" in cng_gate_new:");
+      Serial.println(" in cng_gate_new. From:");
+      Serial.println(_from);
+      Serial.println("   to:   ");
+      Serial.println(_to);
 
       Led cur_led;
       if (_from==GATE_OPEN_NEW) {
@@ -163,10 +186,9 @@ class road_blocker {
       int blnk_on = 3;
       
       if (_to>_from) {
-        Serial.print(" UP "); 
+        Serial.print(" UP  "); 
         for(int i=_from;i<= _to;i++) {
-          //Serial.print(" ");
-          //Serial.print(i);
+          
           if (i%blnk_cycle<blnk_on) {
             // light the LED from 0-2
             cur_led.set_led_on();
@@ -175,6 +197,8 @@ class road_blocker {
             // shut the LED
             cur_led.set_led_off();
           } // of else()
+          Serial.print("  writing to servo:  ");
+          Serial.print(i);  
           gate_servo.write(i);
           delay(SERVO_DELAY);
         } // of for()
@@ -197,11 +221,15 @@ class road_blocker {
         } // of for()
       } // of else()
 
-    if (opened)
+    if (opened) {
       Green_led.set_led_on();
-    else
+    }
+    else {
       Red_led.set_led_on();
+    }
       
+
+      Serial.print("   Ending cng_gate_new()    ");
     } // of cng_gate_new() - should replace the current
 
 // -------------------------------------------------
@@ -311,19 +339,14 @@ class road_blocker {
         Red_led.set_led_off();
         // light the current LED
         cur_led.set_led_on();
-
     } // of cng_gate()
 
-
-    
-
-    void test_sensor() {   
-      
+    void test_sensor() {         
       for (int i=0;i<20;i++) {
         dist_sensor.read_US_sensor();        
         Serial.println(dist_sensor.dist);
         delay (250);
-      }
+      }// of for() loop 
     } // of test_sensor
 
     void test_leds() {
@@ -331,13 +354,14 @@ class road_blocker {
       for (int i=0;i<5;i++) {
         Green_led.set_led_on();
         Red_led.set_led_off();
+        Yellow_led.set_led_on();
         delay(blink_delay);
         Green_led.set_led_off();
         Red_led.set_led_on();
+        Yellow_led.set_led_off();
         delay(blink_delay);
       } // of for loop
     } // of test_leds()
-
 
 void write_servo(int _angle1,int _angle2,int _step) {
  //int steps = 10;
@@ -362,8 +386,6 @@ void write_servo(int _angle1,int _angle2,int _step) {
     
 //int blink_time = _step/blink_num;
 //  int blink_cnt=0;
-
-
 
     for(i=_angle1;i<_angle2;i+=inc,blink_cnt++) {
         if ((blink_cnt%blink_time)==0) {
@@ -392,12 +414,26 @@ void write_servo(int _angle1,int _angle2,int _step) {
 } // of write_servo()
 
 void test_servo() {
-    int step=0;
+
+  Serial.print("... GATE_OPEN_NEW: ");
+  Serial.print(GATE_OPEN_NEW);
+  Serial.print("   ... servo_close: ");
+  Serial.println(servo_close);
+  cng_gate_new(GATE_OPEN_NEW,servo_close);
+  wait_millis(500);
+  cng_gate_new(servo_close,GATE_OPEN_NEW);
+  wait_millis(500);
+
+  return;
+
+
+    int step=30; // Must be non-Zero
   write_servo(SERVO_OPEN,SERVO_CLOSE,step);
-  wait_millis(300);
+  wait_millis(1000);
   write_servo(SERVO_CLOSE,SERVO_OPEN,step);
-  wait_millis(300);
+  wait_millis(1000);
   write_servo(SERVO_OPEN,SERVO_CLOSE,step);
+  wait_millis(1000);
 } // of test_servo
 
 }; // of road_blocker class

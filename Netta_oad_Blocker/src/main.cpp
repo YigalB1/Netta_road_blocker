@@ -1,3 +1,4 @@
+// Arduino Nano based
 #include <Arduino.h>
 #include <Servo.h>
 
@@ -5,6 +6,8 @@
 #include <headers.h>
 
 road_blocker my_blocker;
+
+//Servo tmp_servo;
 
 
 void setup() {  
@@ -15,31 +18,76 @@ void setup() {
   my_blocker.Green_led.init_led();
   my_blocker.Red_led.led_pin = red_led_pin;
   my_blocker.Red_led.init_led();
+  my_blocker.Yellow_led.led_pin = yellow_led_pin;
+  my_blocker.Yellow_led.init_led();
   my_blocker.gate_servo.attach(servo_pin);
   my_blocker.dist_sensor.init_US_sensor();
+
+  my_blocker.Yellow_led.set_led_on(); // to indicate RESET
+    
+  #define GATE_OPEN_NEW 90
+  #define SERVO_CLOSE1 0
+  #define SERVO_CLOSE2 180
 
   // TBD - to read from extenal switch
   // as for now:
   my_blocker.servo_close =  SERVO_CLOSE1;
   
-  
-  
-  #define GATE_OPEN_NEW 90
-  #define SERVO_CLOSE1 0
-  #define SERVO_CLOSE2 180
-  
-  
-  my_blocker.cng_gate_new(my_blocker.servo_close, GATE_OPEN_NEW);
+  //my_blocker.cng_gate_new(my_blocker.servo_close, GATE_OPEN_NEW);
   //my_blocker.gate_status = GATE_OPEN_NEW;
 
-  my_blocker.cng_gate_new(GATE_OPEN_NEW,my_blocker.servo_close);
+  //my_blocker.cng_gate_new(GATE_OPEN_NEW,my_blocker.servo_close);
   //my_blocker.gate_status = my_blocker.servo_close;
 
   Serial.println("setup finished");
+  wait_millis(1000);
+  my_blocker.Yellow_led.set_led_off(); // to indicate RESET
+
+  //tmp_servo.attach(9);
+  
 } // of SETUP
 
 void loop() {
-  my_blocker.test_sensor();
+  /*
+  Serial.println("Servo up");
+  for(int i=0;i<180;i+=10) {
+    tmp_servo.write(i);
+    wait_millis(100);
+  }
+
+Serial.println("Servo dpwn");
+  wait_millis(1000);
+
+  for(int i=180;i>0;i-=10) {
+    tmp_servo.write(i);
+    wait_millis(100);
+  }
+  wait_millis(1000);
+*/
+
+//my_blocker.test1_servo();
+//wait_millis(1000);
+//return;
+
+
+  //return;
+  Serial.print(" attached to servo:  ");
+  Serial.println(my_blocker.gate_servo.attached());
+  Serial.print(" attached to servo:  ");
+  Serial.print(my_blocker.gate_servo.read());
+
+  Serial.println(" ");
+  Serial.println(" testing LEDs ");
+  my_blocker.test_leds(); 
+  wait_millis(500);
+  //my_blocker.test_sensor();
+  my_blocker.Red_led.set_led_on();
+  my_blocker.Green_led.set_led_off();
+  Serial.println(" testing Servo ");
+  my_blocker.test_servo();
+  my_blocker.Red_led.set_led_off();
+  my_blocker.Green_led.set_led_on();
+  wait_millis(500);
   return;
   
   my_blocker.check_sensor();
