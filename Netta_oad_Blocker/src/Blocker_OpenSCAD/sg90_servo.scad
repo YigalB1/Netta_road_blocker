@@ -16,6 +16,6 @@ module sg90_motor(){
 			translate([hole,0,5]) cylinder(r=2.2, h=4, $fn=20, center=true);
 		}	// of for loop
 	} // of difference()
-    translate([14,0,5])  cylinder(r=2.2,h=40, center=true);
-    translate([-14,0,5]) cylinder(r=2.2,h=40, center=true);
+    translate([14,0,5])  cylinder(d=2.2,h=40, center=true,$fn=60);
+    translate([-14,0,5]) cylinder(d=2.2,h=40, center=true,$fn=60);
 } // of module()

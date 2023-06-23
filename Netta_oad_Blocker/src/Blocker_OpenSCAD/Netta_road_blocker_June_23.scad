@@ -10,7 +10,7 @@ box_y = 120;
 box_h = 40; // working currently 90
 box_width = 2;
 corner_x = 8;
-pcb_vec = [0,0,-18];
+
 
 header1 = "המחסום של נטע";
 echo("xxx");
@@ -27,11 +27,14 @@ echo("xxx");
 
 
 text_vec=[0,0,0];
-print_box(_param=2);
+print_box(_param=1);
 
 //print_cover(_t=header1,_t_vec=text_vec);
 
 module print_box(_param) {
+    // moved -5 because of battery & servo
+    // -s for US sensor and pcb
+    pcb_vec = [0-5,0-3,-18];
     if (_param==1) {
         difference() {
             union() {
@@ -45,7 +48,7 @@ module print_box(_param) {
             translate([-25,50,10]) rotate([-90,0,0]) HC_SR04();
             translate([0,-47,6]) rotate([90,0,0]) sg90_motor();
             //translate(pcb_vec) mk_holes();  // for USB charging
-                translate([40,27-5,6]) rotate([90,0,90]) #usb_charger_hole(); // usb charger
+                #translate([40,27-5,6]) rotate([90,0,90]) #usb_charger_hole(); // usb charger
             translate([45,46,5]) rotate([90,90,90])
                 ss12f15_mk_hole(); // swtch button
     } // of difference()
@@ -72,7 +75,7 @@ module print_box(_param) {
 
 
 module usb_charger_hole(){
-    cube([15,5.0+0.5,10]);
+    cube([13.6,5.3,10]);
 } // of usb_charger_hole()
 
 module print_cover(_t="my text",_t_vec) {

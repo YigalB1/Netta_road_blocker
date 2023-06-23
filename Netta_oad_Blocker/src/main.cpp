@@ -21,6 +21,8 @@ void setup() {
   my_blocker.Yellow_led.led_pin = yellow_led_pin;
   my_blocker.Yellow_led.init_led();
   my_blocker.gate_servo.attach(servo_pin);
+  my_blocker.dist_sensor.trig_pin = trigPin;
+  my_blocker.dist_sensor.echo_pin = echoPin;
   my_blocker.dist_sensor.init_US_sensor();
 
   my_blocker.Yellow_led.set_led_on(); // to indicate RESET
@@ -43,72 +45,29 @@ void setup() {
   wait_millis(1000);
   my_blocker.Yellow_led.set_led_off(); // to indicate RESET
 
-  //tmp_servo.attach(9);
-  
 } // of SETUP
 
 void loop() {
-  /*
-  Serial.println("Servo up");
-  for(int i=0;i<180;i+=10) {
-    tmp_servo.write(i);
-    wait_millis(100);
-  }
-
-Serial.println("Servo dpwn");
-  wait_millis(1000);
-
-  for(int i=180;i>0;i-=10) {
-    tmp_servo.write(i);
-    wait_millis(100);
-  }
-  wait_millis(1000);
-*/
-
-//my_blocker.test1_servo();
-//wait_millis(1000);
-//return;
-
-
-  //return;
-  Serial.print(" attached to servo:  ");
-  Serial.println(my_blocker.gate_servo.attached());
-  Serial.print(" attached to servo:  ");
-  Serial.print(my_blocker.gate_servo.read());
-
-  Serial.println(" ");
-  Serial.println(" testing LEDs ");
-  my_blocker.test_leds(); 
-  wait_millis(500);
-  //my_blocker.test_sensor();
-  my_blocker.Red_led.set_led_on();
-  my_blocker.Green_led.set_led_off();
-  Serial.println(" testing Servo ");
-  my_blocker.test_servo();
-  my_blocker.Red_led.set_led_off();
-  my_blocker.Green_led.set_led_on();
-  wait_millis(500);
-  return;
   
   my_blocker.check_sensor();
-  //Serial.println(" ");
-  //Serial.print("----------------------------");
-  //Serial.print(my_blocker.dist_sensor.dist);
-  //Serial.print(" . ");
-  //Serial.print(my_blocker.change_it);
-  //Serial.print(" . ");
-  //Serial.print(my_blocker.opened_gate);
-  //Serial.print(" / ");
-  
-  //delay(50);
+  Serial.println(" ");
+  Serial.print("----------------------------");
+  Serial.print(my_blocker.dist_sensor.dist);
+  Serial.print(" . ");
+  Serial.print(my_blocker.change_it);
+  Serial.print(" . ");
+  Serial.print(my_blocker.opened_gate);
+  Serial.println(" / ");
+  delay(100);
+  //return;
+
+
+
   if(my_blocker.change_it) {
     // Need to change the gate
     Serial.print("my_blocker.opened: ");
     Serial.println(my_blocker.opened);
-    Serial.print("GATE_OPEN_NEW: ");
-    Serial.println(GATE_OPEN_NEW);
-    Serial.print("my_blocker.servo_close");
-    Serial.println(my_blocker.servo_close);
+    wait_millis(500);
     //Serial.print();
 
     if (my_blocker.opened) {
@@ -136,3 +95,49 @@ Serial.println("Servo dpwn");
 
 } // of loop()
 
+
+
+
+
+ /*
+  Serial.println("Servo up");
+  for(int i=0;i<180;i+=10) {
+    tmp_servo.write(i);
+    wait_millis(100);
+  }
+
+Serial.println("Servo dpwn");
+  wait_millis(1000);
+
+  for(int i=180;i>0;i-=10) {
+    tmp_servo.write(i);
+    wait_millis(100);
+  }
+  wait_millis(1000);
+*/
+
+//my_blocker.test1_servo();
+//wait_millis(1000);
+//return;
+
+//return;
+/*
+  Serial.print(" attached to servo:  ");
+  Serial.println(my_blocker.gate_servo.attached());
+  Serial.print(" attached to servo:  ");
+  Serial.print(my_blocker.gate_servo.read());
+
+  Serial.println(" ");
+  Serial.println(" testing LEDs ");
+  my_blocker.test_leds(); 
+  wait_millis(500);
+  //my_blocker.test_sensor();
+  my_blocker.Red_led.set_led_on();
+  my_blocker.Green_led.set_led_off();
+  Serial.println(" testing Servo ");
+  my_blocker.test_servo();
+  my_blocker.Red_led.set_led_off();
+  my_blocker.Green_led.set_led_on();
+  wait_millis(500);
+  return;
+  */

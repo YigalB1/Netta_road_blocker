@@ -111,8 +111,6 @@ class road_blocker {
     bool opened_gate = false; // current status of the gate
     bool change_it = false;  // chnage the gate from open to close or from close to open
     bool opened;  // the status if the gate true: opened. false: closed
-
-  
   int servo_close = 777;
 
 
@@ -124,7 +122,7 @@ void test1_servo() {
     wait_millis(100);
   }
 
-Serial.println("Servo dpwn");
+  Serial.println("Servo down");
   wait_millis(500);
 
   for(int i=180;i>0;i-=10) {
@@ -154,10 +152,10 @@ Serial.println("Servo dpwn");
       // make sure both LEDs are off
       Green_led.set_led_off();
       Red_led.set_led_off();
-      //bool opening; // opening the ggate or close it
-      Serial.println(" in cng_gate_new. From:");
-      Serial.println(_from);
-      Serial.println("   to:   ");
+
+      Serial.print(" in cng_gate_new. From: ");
+      Serial.print(_from);
+      Serial.print("   to:   ");
       Serial.println(_to);
 
       Led cur_led;
@@ -175,18 +173,11 @@ Serial.println("Servo dpwn");
       } // of else()
 
 
-      Serial.print(" _from:");
-      Serial.print(_from);
-      Serial.print(" to: ");  
-      Serial.print(_to);
-      Serial.print(" opened: ");  
-      Serial.println(opened);
-
       int blnk_cycle = 10;
       int blnk_on = 3;
       
       if (_to>_from) {
-        Serial.print(" UP  "); 
+        //Serial.print(" UP  "); 
         for(int i=_from;i<= _to;i++) {
           
           if (i%blnk_cycle<blnk_on) {
@@ -197,8 +188,8 @@ Serial.println("Servo dpwn");
             // shut the LED
             cur_led.set_led_off();
           } // of else()
-          Serial.print("  writing to servo:  ");
-          Serial.print(i);  
+//          Serial.print("  writing to servo:  ");
+//          Serial.print(i);  
           gate_servo.write(i);
           delay(SERVO_DELAY);
         } // of for()
