@@ -1,9 +1,9 @@
 
-#define echoPin 2 //  pin D2 to pin Echo of HC-SR04
-#define trigPin 3 //  pin D3 to pin Trig of HC-SR04
-#define red_led_pin 12
+#define echoPin 3 //  July 2024 was 2
+#define trigPin 2 //  July 2024 was 3
+#define red_led_pin 10 // July 2024: was 12
 #define yellow_led_pin 11
-#define green_led_pin 10
+#define green_led_pin 12 // July 2024: was 10
 
 
 #define GATE_OPEN 0
