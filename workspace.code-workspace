@@ -10,6 +10,10 @@
 		{
 			"name": "Netta_Road_Blocker_V2",
 			"path": "Netta_Road_Blocker_V2"
+		},
+		{
+			"name": "Road_blocker_Wemos",
+			"path": "Road_blocker_Wemos"
 		}
 	],
 	"settings": {}
